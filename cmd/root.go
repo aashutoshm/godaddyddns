@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -15,16 +16,21 @@ var rootCmd = &cobra.Command{
 }
 
 func init() {
-	cobra.OnInitialize(initConfig)
+	cobra.OnInitialize()
+	viper.SetEnvPrefix("ddns")
+	viper.AutomaticEnv()
 	rootCmd.PersistentFlags().StringP("access_key", "a", viper.GetString("access_key"), "GoDaddy API Access Key")
 	viper.BindPFlag("access_key", rootCmd.PersistentFlags().Lookup("access_key"))
 	rootCmd.PersistentFlags().StringP("secret_key", "s", viper.GetString("secret_key"), "GoDaddy API Secret Key")
 	viper.BindPFlag("secret_key", rootCmd.PersistentFlags().Lookup("secret_key"))
-}
 
-func initConfig() {
-	viper.SetEnvPrefix("ddns")
-	viper.AutomaticEnv()
+	rootCmd.PersistentFlags().BoolP("ote", "e", false, "GoDaddy Environment (Production by default)")
+	viper.BindPFlag("ote", rootCmd.PersistentFlags().Lookup("ote"))
+
+	// validate required args
+	if viper.GetString("access_key") == "" || viper.GetString("secret_key") == "" {
+		log.Fatalf("access_key or secret_key must not be empty")
+	}
 }
 
 // Execute command line
